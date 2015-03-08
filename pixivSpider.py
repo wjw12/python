@@ -1,15 +1,16 @@
+#!python3
 # -*- coding: utf-8 -*-
-import re,urllib.request,http.client
+import re,urllib.request,http.client,threading
 
 rootURL = 'http://www.pixiv.net'
 startURL = 'http://www.pixiv.net/search.php?order=date_d'
 cookie = 'hide_premium_promotion_modal=1424864384; login_ever=yes; OX_plg=swf|shk|pm; PHPSESSID=6871999_a25be4b09af2fb8a26f4ec27612baeda; p_ab_id=9; __utma=235335808.1558172411.1424864193.1424869428.1424873116.3; __utmb=235335808.3.10.1424873116; __utmz=235335808.1424864193.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmv=235335808.|2=login%20ever=yes=1^3=plan=normal=1^5=gender=male=1^6=user_id=6871999=1; _ga=GA1.2.1558172411.1424864193; visit_ever=yes; __gads=ID=dfb874fd3ef5812a:T=1424864229:S=ALNI_MbybU42Aes0RIAL9oRRz3NqJ3F6Mg; device_token=1fc18d5ddea142f1ae8f9a19804cf695; module_orders_mypage=%5B%7B%22name%22%3A%22everyone_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22spotlight%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22featured_tags%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22contests%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22following_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22mypixiv_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22booth_follow_items%22%2C%22visible%22%3Atrue%7D%5D; __utmc=235335808' 
 #使用前要修改cookie
 class spider:
-	def __init__(self,keyword):
+	def __init__(self,keyword,startPage=1):
 		self.rootURL = rootURL
 		self.startURL = startURL
-		self.page = 1
+		self.page = startPage
 		self.keyword = urllib.parse.quote(keyword) #将搜索关键词汉字转换为%xx
 		self.startURL += (u'&word='+self.keyword+u'&p=')
 	def getHrefList(self,page): #获取赞数为三位数以上的图片页面超链接
@@ -56,7 +57,7 @@ class spider:
 				repl = '\n'.encode('utf-8')
 				imgPage = re.sub(replaceDIV,repl,imgPage)  
 				#替换<div></div>为换行符 \n
-				reg = r'<img alt="(.*)" width.*data-src="(http.*original.*jpg)" .*class="original-image"'.encode('utf-8')
+				reg = r'<img alt="(.*)" width.*data-src="(http.*jpg)" .*class="original-image"'.encode('utf-8')
 				imgRe = re.compile(reg)
 				imgList = re.findall(imgRe,imgPage)
 				for img in imgList:
@@ -79,9 +80,21 @@ class spider:
 					#gb18030能编码日文汉字，gbk有时会出错
 					counter += 1
 
-					
+class spiderThread(threading.Thread):
+	def __init__(self,startPage=1):
+		threading.Thread.__init__(self)
+		self.spider = spider(u'saber',startPage)
+		print ('Start page ',startPage)
+	def run(self):
+		lock = threading.Lock()
+		with lock:
+			self.spider.saveImg()
+
 def removeIllegalChars(filename): #处理文件名中不合法字符  \ / ? : * " > < |
 	pattern = r'[\\/\?:\*"><\|]*'
 	return re.sub(pattern,"",filename)
-mySpider = spider(u'初音')
-mySpider.saveImg()
+
+for i in range(30):
+	page = 400+i*30
+	t = spiderThread(page)
+	t.start()
