@@ -1,4 +1,5 @@
 class Stack():
+	""" This class purpose is to append data to self.elems """
 	def __init__(self):
 		self.elems = [ ]
 	def is_empty(self):
@@ -16,6 +17,7 @@ class Stack():
 		
 		
 class element():
+	""" This class purpose is to initialize data and assigning them """
 	def __init__(self,x,y,status):
 		self.x = x
 		self.y = y
@@ -24,6 +26,7 @@ class element():
 directions = ((0,1),(1,0),(0,-1),(-1,0))
 maze = [[1,1,1,1,1,1],[1,0,1,0,1,1],[1,0,0,0,0,1],[1,0,1,0,1,1],[1,1,1,1,1,1]]
 def mazePath (maze,x,y,end_x,end_y):
+	""" This function runs the algorithm of the maze.py """
 	st = Stack()
 	maze[x][y] = 2
 	ele = element(x,y,-1)
@@ -49,5 +52,5 @@ def mazePath (maze,x,y,end_x,end_y):
 		st.pop()
 	print ("No way")
 	return False
-	
+# This will run the whole script	
 mazePath(maze,1,1,3,3)
