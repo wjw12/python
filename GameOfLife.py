@@ -42,7 +42,7 @@ class lifeGrid:
 					rowStr += '@'
 				else:
 					rowStr += '.'
-			print rowStr
+			print (rowStr)
 		print
 	def evolve(self):
 		newList = list()
